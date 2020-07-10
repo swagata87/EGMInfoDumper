@@ -6,6 +6,10 @@
 #include <memory>
 
 // user include files
+//#include "DataFormats/TrackReco/interface/TrackFwd.h"
+//#include "DataFormats/TrackReco/interface/TrackExtra.h"
+//#include "DataFormats/TrackReco/interface/HitPattern.h"
+#include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/GsfTrackReco/interface/GsfTrackFwd.h"
 #include "DataFormats/DetId/interface/DetId.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -71,17 +75,22 @@ public:
   std::vector<float>  ele_HoE;
   std::vector<float>  ele_HoEfull5x5;
   std::vector<float>  ele_ScEta;
+  std::vector<float>  ele_ScPhi;
+  std::vector<float>  ele_Eta;
+  std::vector<float>  ele_Phi;
   std::vector<float>  ele_ScEn;
   std::vector<float>  ele_Pt;
+  std::vector<bool>  ele_isEcalDriven;
   std::vector<float>  ele_fbrem;
-  std::vector<float>  ele_missingHit;
+  //  std::vector<float>  ele_missingHit;
+  //  std::vector<float>  ele_pixelLayersTotallyOffOrBad;
   std::vector<float>  ele_psEorawE;
   std::vector<float>  ele_1oEm1op;
   std::vector<float>  ele_eSCoPout;
   std::vector<float>  ele_eSCoP;
-  std::vector<float>  ele_convVtxFitProb;
-  std::vector<float>  ele_gsfTrackChi2;
-  std::vector<float>  ele_nHit;
+   std::vector<float>  ele_convVtxFitProb;
+    std::vector<float>  ele_gsfTrackChi2;
+  ///  std::vector<float>  ele_nHit;
   std::vector<float>  ele_deltaEtaSuperClusterTrackAtVtx;
   std::vector<float>  ele_deltaPhiSuperClusterTrackAtVtx;
   std::vector<float>  ele_deltaEtaSeedClusterTrackAtCalo;
@@ -93,6 +102,9 @@ public:
   std::vector<float>  ele_closestCtfTrackNLayers;
   std::vector<float>  ele_closestCtfTrackNormChi2;
   std::vector<float>  ele_1mE1x5oE5x5;
+  std::vector<float>  ele_gsfTrack_vz;
+  std::vector<float>  ele_gsfTrack_outerZ;
+  std::vector<float>  ele_gsfTrack_eta;
   std::vector<float>  ptRecoEle_by_ptGenEle;
   std::vector<float>  dR_recoEle_genEle;
   std::vector<int>  ele_genmatched;
@@ -139,6 +151,7 @@ private:
   edm::EDGetTokenT<edm::View<pat::Electron> > eleToken_;
   //edm::EDGetTokenT<edm::View<reco::Photon> > phoToken_;
   edm::EDGetTokenT<edm::View<pat::Photon> > phoToken_;
+  edm::EDGetTokenT<edm::View<pat::Photon> > ootphoToken_;
   edm::EDGetTokenT<std::vector<PileupSummaryInfo> >     puCollection_;
   edm::EDGetTokenT<std::vector<reco::GenParticle> >     genParticlesCollection_;
 
@@ -149,6 +162,7 @@ EGMGenericNtupler::EGMGenericNtupler(const edm::ParameterSet& iConfig)
   rhoLabel_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoLabel"))),
   eleToken_(consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("electrons"))),
   phoToken_(consumes<edm::View<pat::Photon> >(iConfig.getParameter<edm::InputTag>("Photons"))),
+  ootphoToken_(consumes<edm::View<pat::Photon> >(iConfig.getParameter<edm::InputTag>("ootPhotons"))),
   puCollection_(consumes<std::vector<PileupSummaryInfo> >(iConfig.getParameter<edm::InputTag>("pileupCollection"))),
   genParticlesCollection_(consumes<std::vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("genParticleSrc")))
 
@@ -170,17 +184,25 @@ EGMGenericNtupler::EGMGenericNtupler(const edm::ParameterSet& iConfig)
   tree->Branch("ele_HoE_",&ele_HoE);
   tree->Branch("ele_HoEfull5x5_",&ele_HoEfull5x5);
   tree->Branch("ele_ScEta_",&ele_ScEta);
+  tree->Branch("ele_ScPhi_",&ele_ScPhi);
+  tree->Branch("ele_Eta_",&ele_Eta);
+  tree->Branch("ele_Phi_",&ele_Phi);
   tree->Branch("ele_ScEn_",&ele_ScEn);
   tree->Branch("ele_Pt_",&ele_Pt);
+  tree->Branch("ele_isEcalDriven_",&ele_isEcalDriven);
   tree->Branch("ele_fbrem_",&ele_fbrem);
-  tree->Branch("ele_missingHit_",&ele_missingHit);
+  // tree->Branch("ele_missingHit_",&ele_missingHit);
+  //tree->Branch("ele_pixelLayersTotallyOffOrBad_",&ele_pixelLayersTotallyOffOrBad);
   tree->Branch("ele_psEorawE_",&ele_psEorawE);
   tree->Branch("ele_1oEm1op_",&ele_1oEm1op);
   tree->Branch("ele_eSCoP_",&ele_eSCoP);
   tree->Branch("ele_eSCoPout_",&ele_eSCoPout);
   tree->Branch("ele_convVtxFitProb_",&ele_convVtxFitProb);
   tree->Branch("ele_gsfTrackChi2_",&ele_gsfTrackChi2);
-  tree->Branch("ele_nHit_",&ele_nHit);
+  // tree->Branch("ele_nHit_",&ele_nHit);
+  tree->Branch("ele_gsfTrack_vz_",&ele_gsfTrack_vz);
+  tree->Branch("ele_gsfTrack_outerZ_",&ele_gsfTrack_outerZ);
+  tree->Branch("ele_gsfTrack_eta_",&ele_gsfTrack_eta);
   tree->Branch("ele_deltaEtaSuperClusterTrackAtVtx_",&ele_deltaEtaSuperClusterTrackAtVtx);
   tree->Branch("ele_deltaPhiSuperClusterTrackAtVtx_",&ele_deltaPhiSuperClusterTrackAtVtx);
   tree->Branch("ele_deltaEtaSeedClusterTrackAtCalo_",&ele_deltaEtaSeedClusterTrackAtCalo);
@@ -238,7 +260,7 @@ void
 EGMGenericNtupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   
-  //  std::cout << "\n \n --New Event-- \n" ;
+  std::cout << "\n \n --New Event-- \n" ;
   using namespace edm;
   
   ele_IDVeto.clear();
@@ -256,17 +278,22 @@ EGMGenericNtupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   ele_HoE.clear();
   ele_HoEfull5x5.clear();
   ele_ScEta.clear();
+  ele_ScPhi.clear();
+  ele_Eta.clear();
+  ele_Phi.clear();
   ele_ScEn.clear();
   ele_Pt.clear();
+  ele_isEcalDriven.clear();
   ele_fbrem.clear();
-  ele_missingHit.clear();
+  //ele_missingHit.clear();
+  //ele_pixelLayersTotallyOffOrBad.clear();
   ele_psEorawE.clear();
   ele_1oEm1op.clear();
   ele_eSCoP.clear();
   ele_eSCoPout.clear();
   ele_convVtxFitProb.clear();
   ele_gsfTrackChi2.clear();
-  ele_nHit.clear();
+  //ele_nHit.clear();
   ele_deltaEtaSuperClusterTrackAtVtx.clear();
   ele_deltaPhiSuperClusterTrackAtVtx.clear();
   ele_deltaEtaSeedClusterTrackAtCalo.clear();
@@ -275,6 +302,9 @@ EGMGenericNtupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   ele_PFNeuIso.clear();
   ele_etaWidth.clear();
   ele_phiWidth.clear();
+  ele_gsfTrack_vz.clear();
+  ele_gsfTrack_outerZ.clear();
+  ele_gsfTrack_eta.clear();
   ele_closestCtfTrackNLayers.clear();
   ele_closestCtfTrackNormChi2.clear();
   ele_1mE1x5oE5x5.clear();
@@ -340,21 +370,31 @@ EGMGenericNtupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   iEvent.getByToken(rhoLabel_, rhoHandle);
   rho.push_back(*(rhoHandle.product()));
 
+  ///oot pho
+  //std::cout << "will enter oot now " << std::endl;
+  for(const auto& ootpho : iEvent.get(ootphoToken_) ) {
+    std::cout << "\n new oot photon " << std::endl;
+    std::cout << "var " << ootpho.pt() << " " << ootpho.chargedHadronIso() 
+	      << " " << ootpho.photonIso() << " " << ootpho.neutralHadronIso() 
+	      << " UF " << ootpho.userFloat("phoChargedIsolation") << std::endl;
+  }
+
+
   ////photon
   for(const auto& pho : iEvent.get(phoToken_) ) {
     //std::cout << "\n new photon " << std::endl;
     
-    bool pass_loose = pho.photonID("cutBasedPhotonID-Fall17-94X-V2-loose");
-    bool pass_medium = pho.photonID("cutBasedPhotonID-Fall17-94X-V2-medium");
-    bool pass_tight = pho.photonID("cutBasedPhotonID-Fall17-94X-V2-tight");
+    //    bool pass_loose = pho.photonID("cutBasedPhotonID-Fall17-94X-V2-loose");
+    // bool pass_medium = pho.photonID("cutBasedPhotonID-Fall17-94X-V2-medium");
+    // bool pass_tight = pho.photonID("cutBasedPhotonID-Fall17-94X-V2-tight");
     
-    pho_IDLoose.push_back(pass_loose);
-    pho_IDMedium.push_back(pass_medium);
-    pho_IDTight.push_back(pass_tight);
+    //  pho_IDLoose.push_back(pass_loose);
+    // pho_IDMedium.push_back(pass_medium);
+    // pho_IDTight.push_back(pass_tight);
     
-    pho_IDbits.push_back({pho.userInt("cutBasedPhotonID-Fall17-94X-V2-loose"),
-	  pho.userInt("cutBasedPhotonID-Fall17-94X-V2-medium"),
-	  pho.userInt("cutBasedPhotonID-Fall17-94X-V2-tight")});
+    //pho_IDbits.push_back({pho.userInt("cutBasedPhotonID-Fall17-94X-V2-loose"),
+    //	  pho.userInt("cutBasedPhotonID-Fall17-94X-V2-medium"),
+    //	  pho.userInt("cutBasedPhotonID-Fall17-94X-V2-tight")});
     
     int thispho_genmatched=0;
     double thispho_min_dr=9999.9;
@@ -406,24 +446,24 @@ EGMGenericNtupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   for(const auto& ele : iEvent.get(eleToken_) ) {
     // std::cout << "\n ---/// New Electron .... " << std::endl;
     
-    bool isPassVeto   = ele.electronID("cutBasedElectronID-Fall17-94X-V2-veto");
-    bool isPassLoose   = ele.electronID("cutBasedElectronID-Fall17-94X-V2-loose");
-    bool isPassMedium   = ele.electronID("cutBasedElectronID-Fall17-94X-V2-medium");
-    bool isPassTight   = ele.electronID("cutBasedElectronID-Fall17-94X-V2-tight");
-    bool isPassMVAiso90 = ele.electronID("mvaEleID-Fall17-iso-V2-wp90");
+    //    bool isPassVeto   = ele.electronID("cutBasedElectronID-Fall17-94X-V2-veto");
+    // bool isPassLoose   = ele.electronID("cutBasedElectronID-Fall17-94X-V2-loose");
+    //  bool isPassMedium   = ele.electronID("cutBasedElectronID-Fall17-94X-V2-medium");
+    // bool isPassTight   = ele.electronID("cutBasedElectronID-Fall17-94X-V2-tight");
+    // bool isPassMVAiso90 = ele.electronID("mvaEleID-Fall17-iso-V2-wp90");
 
-      ele_IDVeto.push_back(isPassVeto);
-      ele_IDLoose.push_back(isPassLoose);
-      ele_IDMedium.push_back(isPassMedium);
-      ele_IDTight.push_back(isPassTight);
-      ele_IDMVAiso90.push_back(isPassMVAiso90);
+    // ele_IDVeto.push_back(isPassVeto);
+    // ele_IDLoose.push_back(isPassLoose);
+    // ele_IDMedium.push_back(isPassMedium);
+    // ele_IDTight.push_back(isPassTight);
+    // ele_IDMVAiso90.push_back(isPassMVAiso90);
 
-      ele_IDbits.push_back({          
-	  ele.userInt("cutBasedElectronID-Fall17-94X-V2-veto"),
-	    ele.userInt("cutBasedElectronID-Fall17-94X-V2-loose"),
-	    ele.userInt("cutBasedElectronID-Fall17-94X-V2-medium"),
-	    ele.userInt("cutBasedElectronID-Fall17-94X-V2-tight"),
-	    ele.userInt("heepElectronID-HEEPV70")});
+    // ele_IDbits.push_back({          
+    //	  ele.userInt("cutBasedElectronID-Fall17-94X-V2-veto"),
+    //	    ele.userInt("cutBasedElectronID-Fall17-94X-V2-loose"),
+    //	    ele.userInt("cutBasedElectronID-Fall17-94X-V2-medium"),
+    ///	    ele.userInt("cutBasedElectronID-Fall17-94X-V2-tight"),
+    //	    ele.userInt("heepElectronID-HEEPV70")});
       
       int genmatched=0;
       double min_dr=9999.9;
@@ -459,8 +499,12 @@ EGMGenericNtupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
       ele_HoE.push_back(ele.hcalOverEcal());
       ele_HoEfull5x5.push_back(ele.full5x5_hcalOverEcal());
       ele_ScEta.push_back(ele.superCluster()->eta());
+      ele_ScPhi.push_back(ele.superCluster()->phi());
+      ele_Eta.push_back(ele.eta());
+      ele_Phi.push_back(ele.phi());
       ele_ScEn.push_back(ele.superCluster()->energy());
       ele_Pt.push_back(ele.pt());
+      ele_isEcalDriven.push_back(ele.ecalDriven());
       ele_1mE1x5oE5x5.push_back(1-(ele.full5x5_e1x5()/ele.full5x5_e5x5()));      
       ele_etaWidth.push_back(ele.superCluster()->etaWidth());
       ele_phiWidth.push_back(ele.superCluster()->phiWidth());
@@ -468,9 +512,13 @@ EGMGenericNtupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
       ele_deltaPhiSuperClusterTrackAtVtx.push_back(ele.deltaPhiSuperClusterTrackAtVtx());
       ele_deltaEtaSeedClusterTrackAtCalo.push_back(ele.deltaEtaSeedClusterTrackAtCalo());
       ele_fbrem.push_back(ele.fbrem());
-      ele_missingHit.push_back(ele.gsfTrack()->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS));
-      ele_nHit.push_back(ele.gsfTrack()->hitPattern().trackerLayersWithMeasurement());
-      ele_gsfTrackChi2.push_back(ele.gsfTrack()->normalizedChi2());
+      //      ele_missingHit.push_back(ele.gsfTrack()->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS));
+      //      ele_pixelLayersTotallyOffOrBad.push_back(ele.gsfTrack()->hitPattern().pixelLayersTotallyOffOrBad());
+      //      ele_nHit.push_back(ele.gsfTrack()->hitPattern().trackerLayersWithMeasurement());
+      // ele_gsfTrackChi2.push_back(ele.gsfTrack()->normalizedChi2());
+      // ele_gsfTrack_vz.push_back(ele.gsfTrack()->vz());
+      //    ele_gsfTrack_outerZ.push_back(ele.gsfTrack()->outerZ());
+      //  ele_gsfTrack_eta.push_back(ele.gsfTrack()->eta());
       ele_eSCoP.push_back(ele.eSuperClusterOverP());
       ele_eSCoPout.push_back(ele.eEleClusterOverPout());
       ele_1oEm1op.push_back( (1.0/ele.ecalEnergy()) - (1.0/ele.trackMomentumAtVtx().r()) );
