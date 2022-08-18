@@ -1,14 +1,11 @@
-# EGMInfoDumper
 
-Generic EGM ntuplizer for RunIII, for multi purpose use 
+cmsrel CMSSW_12_4_6
 
-cmsrel CMSSW_11_1_0_pre8
-
-cd CMSSW_11_1_0_pre8/src/
+cd CMSSW_12_4_6/src/
 
 cmsenv
 
-git clone https://github.com/swagata87/EGMInfoDumper
+git clone -b nanIssueInIso https://github.com/swagata87/EGMInfoDumper
 
 scram b
 
