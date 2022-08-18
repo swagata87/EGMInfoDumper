@@ -6,9 +6,6 @@
 #include <memory>
 
 // user include files
-//#include "DataFormats/TrackReco/interface/TrackFwd.h"
-//#include "DataFormats/TrackReco/interface/TrackExtra.h"
-//#include "DataFormats/TrackReco/interface/HitPattern.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/GsfTrackReco/interface/GsfTrackFwd.h"
 #include "DataFormats/DetId/interface/DetId.h"
@@ -18,15 +15,7 @@
 #include "RecoEcal/EgammaCoreTools/interface/EcalTools.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
-#include "Geometry/CaloTopology/interface/CaloTopology.h"
-#include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
-#include "Geometry/Records/interface/CaloTopologyRecord.h"
-#include "Geometry/Records/interface/CaloGeometryRecord.h"
-#include "Geometry/CaloEventSetup/plugins/CaloTopologyBuilder.h"
 #include "FWCore/Framework/interface/EventSetup.h"
-#include "Geometry/CaloGeometry/interface/CaloGeometry.h"
-#include "Geometry/CaloGeometry/interface/CaloSubdetectorGeometry.h"
-#include "Geometry/CaloTopology/interface/CaloSubdetectorTopology.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
@@ -82,15 +71,12 @@ public:
   std::vector<float>  ele_Pt;
   std::vector<bool>  ele_isEcalDriven;
   std::vector<float>  ele_fbrem;
-  //  std::vector<float>  ele_missingHit;
-  //  std::vector<float>  ele_pixelLayersTotallyOffOrBad;
   std::vector<float>  ele_psEorawE;
   std::vector<float>  ele_1oEm1op;
   std::vector<float>  ele_eSCoPout;
   std::vector<float>  ele_eSCoP;
-   std::vector<float>  ele_convVtxFitProb;
-    std::vector<float>  ele_gsfTrackChi2;
-  ///  std::vector<float>  ele_nHit;
+  std::vector<float>  ele_convVtxFitProb;
+  std::vector<float>  ele_gsfTrackChi2;
   std::vector<float>  ele_deltaEtaSuperClusterTrackAtVtx;
   std::vector<float>  ele_deltaPhiSuperClusterTrackAtVtx;
   std::vector<float>  ele_deltaEtaSeedClusterTrackAtCalo;
@@ -147,9 +133,7 @@ private:
   // ----------member data ---------------------------
 
   edm::EDGetTokenT<double> rhoLabel_;
-  //  edm::EDGetTokenT<edm::View<reco::GsfElectron> > eleToken_;
   edm::EDGetTokenT<edm::View<pat::Electron> > eleToken_;
-  //edm::EDGetTokenT<edm::View<reco::Photon> > phoToken_;
   edm::EDGetTokenT<edm::View<pat::Photon> > phoToken_;
   edm::EDGetTokenT<edm::View<pat::Photon> > ootphoToken_;
   edm::EDGetTokenT<std::vector<PileupSummaryInfo> >     puCollection_;
@@ -191,15 +175,12 @@ EGMGenericNtupler::EGMGenericNtupler(const edm::ParameterSet& iConfig)
   tree->Branch("ele_Pt_",&ele_Pt);
   tree->Branch("ele_isEcalDriven_",&ele_isEcalDriven);
   tree->Branch("ele_fbrem_",&ele_fbrem);
-  // tree->Branch("ele_missingHit_",&ele_missingHit);
-  //tree->Branch("ele_pixelLayersTotallyOffOrBad_",&ele_pixelLayersTotallyOffOrBad);
   tree->Branch("ele_psEorawE_",&ele_psEorawE);
   tree->Branch("ele_1oEm1op_",&ele_1oEm1op);
   tree->Branch("ele_eSCoP_",&ele_eSCoP);
   tree->Branch("ele_eSCoPout_",&ele_eSCoPout);
   tree->Branch("ele_convVtxFitProb_",&ele_convVtxFitProb);
   tree->Branch("ele_gsfTrackChi2_",&ele_gsfTrackChi2);
-  // tree->Branch("ele_nHit_",&ele_nHit);
   tree->Branch("ele_gsfTrack_vz_",&ele_gsfTrack_vz);
   tree->Branch("ele_gsfTrack_outerZ_",&ele_gsfTrack_outerZ);
   tree->Branch("ele_gsfTrack_eta_",&ele_gsfTrack_eta);
@@ -259,8 +240,7 @@ EGMGenericNtupler::~EGMGenericNtupler()
 void
 EGMGenericNtupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  
-  std::cout << "\n \n --New Event-- \n" ;
+
   using namespace edm;
   
   ele_IDVeto.clear();
@@ -285,15 +265,12 @@ EGMGenericNtupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   ele_Pt.clear();
   ele_isEcalDriven.clear();
   ele_fbrem.clear();
-  //ele_missingHit.clear();
-  //ele_pixelLayersTotallyOffOrBad.clear();
   ele_psEorawE.clear();
   ele_1oEm1op.clear();
   ele_eSCoP.clear();
   ele_eSCoPout.clear();
   ele_convVtxFitProb.clear();
   ele_gsfTrackChi2.clear();
-  //ele_nHit.clear();
   ele_deltaEtaSuperClusterTrackAtVtx.clear();
   ele_deltaPhiSuperClusterTrackAtVtx.clear();
   ele_deltaEtaSeedClusterTrackAtCalo.clear();
@@ -370,28 +347,10 @@ EGMGenericNtupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   iEvent.getByToken(rhoLabel_, rhoHandle);
   rho.push_back(*(rhoHandle.product()));
 
-  ///oot pho
-  //std::cout << "will enter oot now " << std::endl;
-  for(const auto& ootpho : iEvent.get(ootphoToken_) ) {
-    std::cout << "\n new oot photon " << std::endl;
-    std::cout << "var " << ootpho.pt() << " " << ootpho.chargedHadronIso() 
-	      << " " << ootpho.photonIso() << " " << ootpho.neutralHadronIso() 
-	      << " UF " << ootpho.userFloat("phoChargedIsolation") << std::endl;
-  }
-
-
   ////photon
   for(const auto& pho : iEvent.get(phoToken_) ) {
-    //std::cout << "\n new photon " << std::endl;
-    
-    //    bool pass_loose = pho.photonID("cutBasedPhotonID-Fall17-94X-V2-loose");
-    // bool pass_medium = pho.photonID("cutBasedPhotonID-Fall17-94X-V2-medium");
+
     // bool pass_tight = pho.photonID("cutBasedPhotonID-Fall17-94X-V2-tight");
-    
-    //  pho_IDLoose.push_back(pass_loose);
-    // pho_IDMedium.push_back(pass_medium);
-    // pho_IDTight.push_back(pass_tight);
-    
     //pho_IDbits.push_back({pho.userInt("cutBasedPhotonID-Fall17-94X-V2-loose"),
     //	  pho.userInt("cutBasedPhotonID-Fall17-94X-V2-medium"),
     //	  pho.userInt("cutBasedPhotonID-Fall17-94X-V2-tight")});
@@ -433,38 +392,28 @@ EGMGenericNtupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
     pho_PhiWidth.push_back(pho.superCluster()->phiWidth());
     pho_PhotonIso.push_back(pho.photonIso());  
     pho_ChargedHadronIso.push_back(pho.chargedHadronIso());  
+
+    if  ( (pho.chargedHadronIso() < 0 ) || isnan(pho.chargedHadronIso()) )
+      {
+	std::cout << "\n\n ** pho.chargedHadronIso() = " << pho.chargedHadronIso() << " pho.chargedHadronPFPVIso() = " << pho.chargedHadronPFPVIso() << std::endl;
+	std::cout << "pho.pt() " << pho.pt() << " pho.photonIso() " << pho.photonIso() << " pho.superCluster()->eta() " << pho.superCluster()->eta() << std::endl;
+	std::cout << "tightID " << pho.photonID("cutBasedPhotonID-Fall17-94X-V2-tight") << std::endl;
+	std::cout << "looseID " << pho.photonID("cutBasedPhotonID-Fall17-94X-V2-loose") << std::endl;
+	std::cout << "\n"; 
+      }
     pho_ChargedHadronWorstVtxIso.push_back(pho.chargedHadronWorstVtxIso());
     pho_SCrawE.push_back(pho.superCluster()->rawEnergy());    
    
-    // older versions:
-    // phoPhotonIso.push_back(pho.userFloat("phoPhotonIsolation"));  
-    //phoChargedHadronIso.push_back(pho.userFloat("phoChargedIsolation"));  
-    //phoChargedHadronWorstVtxIso.push_back(pho.userFloat("phoWorstChargedIsolation"));
+
           
   }
 
   for(const auto& ele : iEvent.get(eleToken_) ) {
     // std::cout << "\n ---/// New Electron .... " << std::endl;
     
-    //    bool isPassVeto   = ele.electronID("cutBasedElectronID-Fall17-94X-V2-veto");
-    // bool isPassLoose   = ele.electronID("cutBasedElectronID-Fall17-94X-V2-loose");
-    //  bool isPassMedium   = ele.electronID("cutBasedElectronID-Fall17-94X-V2-medium");
     // bool isPassTight   = ele.electronID("cutBasedElectronID-Fall17-94X-V2-tight");
     // bool isPassMVAiso90 = ele.electronID("mvaEleID-Fall17-iso-V2-wp90");
 
-    // ele_IDVeto.push_back(isPassVeto);
-    // ele_IDLoose.push_back(isPassLoose);
-    // ele_IDMedium.push_back(isPassMedium);
-    // ele_IDTight.push_back(isPassTight);
-    // ele_IDMVAiso90.push_back(isPassMVAiso90);
-
-    // ele_IDbits.push_back({          
-    //	  ele.userInt("cutBasedElectronID-Fall17-94X-V2-veto"),
-    //	    ele.userInt("cutBasedElectronID-Fall17-94X-V2-loose"),
-    //	    ele.userInt("cutBasedElectronID-Fall17-94X-V2-medium"),
-    ///	    ele.userInt("cutBasedElectronID-Fall17-94X-V2-tight"),
-    //	    ele.userInt("heepElectronID-HEEPV70")});
-      
       int genmatched=0;
       double min_dr=9999.9;
       double ptR=9999.9;
@@ -512,13 +461,6 @@ EGMGenericNtupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
       ele_deltaPhiSuperClusterTrackAtVtx.push_back(ele.deltaPhiSuperClusterTrackAtVtx());
       ele_deltaEtaSeedClusterTrackAtCalo.push_back(ele.deltaEtaSeedClusterTrackAtCalo());
       ele_fbrem.push_back(ele.fbrem());
-      //      ele_missingHit.push_back(ele.gsfTrack()->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS));
-      //      ele_pixelLayersTotallyOffOrBad.push_back(ele.gsfTrack()->hitPattern().pixelLayersTotallyOffOrBad());
-      //      ele_nHit.push_back(ele.gsfTrack()->hitPattern().trackerLayersWithMeasurement());
-      // ele_gsfTrackChi2.push_back(ele.gsfTrack()->normalizedChi2());
-      // ele_gsfTrack_vz.push_back(ele.gsfTrack()->vz());
-      //    ele_gsfTrack_outerZ.push_back(ele.gsfTrack()->outerZ());
-      //  ele_gsfTrack_eta.push_back(ele.gsfTrack()->eta());
       ele_eSCoP.push_back(ele.eSuperClusterOverP());
       ele_eSCoPout.push_back(ele.eEleClusterOverPout());
       ele_1oEm1op.push_back( (1.0/ele.ecalEnergy()) - (1.0/ele.trackMomentumAtVtx().r()) );
@@ -561,11 +503,7 @@ EGMGenericNtupler::fillDescriptions(edm::ConfigurationDescriptions& descriptions
   desc.setUnknown();
   descriptions.addDefault(desc);
 
-  //Specify that only 'tracks' is allowed
-  //To use, remove the default given above and uncomment below
-  //ParameterSetDescription desc;
-  //desc.addUntracked<edm::InputTag>("tracks","ctfWithMaterialTracks");
-  //descriptions.addDefault(desc);
+
 }
 
 //define this as a plug-in
