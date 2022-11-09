@@ -37,11 +37,14 @@ process.source = cms.Source("PoolSource",
 
 process.demo = cms.EDAnalyzer('EGMGenericNtupler',
        rhoLabel  = cms.InputTag("fixedGridRhoFastjetAll"),
-       electrons = cms.InputTag('slimmedElectrons'),
-       pileupCollection     = cms.InputTag("slimmedAddPileupInfo"),
-       genParticleSrc       = cms.InputTag("prunedGenParticles"),
+       #electrons = cms.InputTag('slimmedElectrons'),
+       #pileupCollection     = cms.InputTag("slimmedAddPileupInfo"),
+       #genParticleSrc       = cms.InputTag("prunedGenParticles"),
        Photons       = cms.InputTag("slimmedPhotons"),
-       ootPhotons       = cms.InputTag("slimmedOOTPhotons"),
+       effAreas_charged = cms.FileInPath("/afs/cern.ch/user/s/swmukher/work/spoonFeedArrogantUsers/CMSSW_12_4_6/src/EGMInfoDumper/EGMGenericNtupler/Fall17/effAreaPhotons_cone03_pfChargedHadrons_90percentBased_V2.txt"),
+       effAreas_neutral = cms.FileInPath("/afs/cern.ch/user/s/swmukher/work/spoonFeedArrogantUsers/CMSSW_12_4_6/src/EGMInfoDumper/EGMGenericNtupler/Fall17/effAreaPhotons_cone03_pfNeutralHadrons_90percentBased_V2.txt"),
+       effAreas_photon = cms.FileInPath("/afs/cern.ch/user/s/swmukher/work/spoonFeedArrogantUsers/CMSSW_12_4_6/src/EGMInfoDumper/EGMGenericNtupler/Fall17/effAreaPhotons_cone03_pfPhotons_90percentBased_V2.txt"),
+       #ootPhotons       = cms.InputTag("slimmedOOTPhotons"),
                               )
 
 process.TFileService = cms.Service("TFileService", fileName = cms.string('genericEGMntuple_mc.root'))
