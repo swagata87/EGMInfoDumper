@@ -5,7 +5,11 @@ cd CMSSW_12_4_6/src/
 
 cmsenv
 
-git clone -b nanIssueInIso https://github.com/swagata87/EGMInfoDumper
+git-cms-init
+
+git-cms-addpkg RecoEgamma/PhotonIdentification
+
+git clone -b ExampleOfRhoCorrection https://github.com/swagata87/EGMInfoDumper
 
 scram b
 
