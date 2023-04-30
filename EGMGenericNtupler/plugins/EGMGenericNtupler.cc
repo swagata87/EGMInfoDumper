@@ -1,11 +1,11 @@
-// -*- C++ -*-
-// EGMGenericNtupler
-// Author:  Swagata Mukherjee
+// // -*- C++ -*-
+// // EGMGenericNtupler
+// // Author:  Swagata Mukherjee
 
-// system include files
-#include <memory>
+// // system include files
+// #include <memory>
 
-// user include files
+// // user include files
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/GsfTrackReco/interface/GsfTrackFwd.h"
 #include "DataFormats/DetId/interface/DetId.h"
@@ -17,7 +17,6 @@
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 #include "Geometry/CaloTopology/interface/CaloTopology.h"
 #include "Geometry/Records/interface/CaloTopologyRecord.h"
-#include "Geometry/Records/interface/CaloGeometryRecord.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
 #include "Geometry/CaloGeometry/interface/CaloSubdetectorGeometry.h"
@@ -40,7 +39,6 @@
 #include "CondFormats/EcalObjects/interface/EcalPFRecHitThresholds.h"
 #include "CondFormats/DataRecord/interface/EcalPFRecHitThresholdsRcd.h"
 #include "DataFormats/PatCandidates/interface/Photon.h"
-#include "DataFormats/METReco/interface/BeamHaloSummary.h"
 #include "TTree.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
 #include <cmath>
@@ -53,62 +51,42 @@ public:
   ~EGMGenericNtupler();
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
   
-  //  edm::Service<TFileService> fs;
-  //TTree   *tree = fs->make<TTree>("EventTree", "EventData");
-
 private:
-  virtual void beginJob() override;
-  virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
-  virtual void endJob() override;
+   virtual void beginJob() override;
+   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
+   virtual void endJob() override;
 
-  // ----------member data ---------------------------
-
-  //  edm::EDGetTokenT<edm::View<reco::GsfElectron> > eleToken_;
-  //edm::EDGetTokenT<edm::View<reco::Photon> > phoToken_;
-  edm::EDGetTokenT<edm::View<pat::Electron> > eleToken_;
-  edm::EDGetTokenT<edm::View<pat::Photon> > phoToken_;
+//   // ----------member data ---------------------------
+  edm::EDGetToken electronsToken_;
+  edm::EDGetTokenT<edm::ValueMap<float> > mvaValuesMapToken_;
+  
 };
 
 EGMGenericNtupler::EGMGenericNtupler(const edm::ParameterSet& iConfig)
   :
-  eleToken_(consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("electrons"))),
-  phoToken_(consumes<edm::View<pat::Photon> >(iConfig.getParameter<edm::InputTag>("Photons")))
-{}
+  mvaValuesMapToken_(consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("mvaValuesMap")))
+ {
+   electronsToken_    = mayConsume<edm::View<reco::GsfElectron> >(iConfig.getParameter<edm::InputTag>("electrons"));
+ }
 
-EGMGenericNtupler::~EGMGenericNtupler()
-{
-}
+ EGMGenericNtupler::~EGMGenericNtupler()
+ {}
 
 void
 EGMGenericNtupler::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  
   std::cout << "\n \n --New Event-- \n" ;
-
   using namespace edm;
+  edm::Handle<edm::ValueMap<float> > mvaValues;
+  iEvent.getByToken(mvaValuesMapToken_,mvaValues);
   
-  ////photon
-  for(const auto& pho : iEvent.get(phoToken_) ) {
-    std::cout << "\n new photon " << std::endl;
-    
-    //Run2 ID
-    std::cout << "PhoID Cutbased Fall17V2 loose pass? " << pho.photonID("cutBasedPhotonID-Fall17-94X-V2-loose") << std::endl;
-    //Run3 ID
-    std::cout << "PhoID Cutbased Winter22 loose pass? " << pho.photonID("cutBasedPhotonID-RunIIIWinter22-122X-V1-loose") << std::endl;       
-  }
-
-  /////electron
-  for(const auto& ele : iEvent.get(eleToken_) ) {
-    std::cout << "\n new electron .... " << std::endl;
-
-    //Run2 ID
-    std::cout << "EleID MVA Fall17V2 iso wp90 pass? " << ele.electronID("mvaEleID-Fall17-iso-V2-wp90") << std::endl;
-    //Run3 ID
-    std::cout << "EleID MVA Winter22 iso wp90 pass? " << ele.electronID("mvaEleID-RunIIIWinter22-iso-V1-wp90") << std::endl;
-
+  edm::Handle<edm::View<reco::GsfElectron> > electrons;
+  iEvent.getByToken(electronsToken_, electrons);
+  for (size_t i = 0; i < electrons->size(); ++i){
+    const auto el = electrons->ptrAt(i);
+    std::cout << (*mvaValues)[el] << std::endl;
   }
   
-  //  tree->Fill();
   
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
   ESHandle<SetupData> pSetup;
